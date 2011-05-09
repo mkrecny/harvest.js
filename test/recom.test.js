@@ -20,9 +20,12 @@ var Test = {
    populateDB:function(callback){
     console.log('2. Populate from DB:', '------------');
     Test.recomgine.dao.populate(Test.numTestUsers, Test.numElsPerUser);
-    Test.recomgine.dao.redis.scard(Test.recomgine.dao.userSetKey, function(err, res){
-       assert.ok(res == Test.numTestUsers, console.log("PASS"));
-       return callback();
+    Test.recomgine.dao.bind('populated', function(){
+      Test.recomgine.dao.redis.scard(Test.recomgine.dao.userSetKey, function(err, res){
+         console.log('RES', res);
+         assert.ok(res == Test.numTestUsers, console.log("PASS"));
+         return callback();
+      });
     });
    },
 
@@ -38,8 +41,10 @@ var Test = {
       return callback();
     }); 
    },
+
 /*
-   comparativeIterator:function(callback){
+* Turning this off for now
+  comparativeIterator:function(callback){
     //not quite sure how to test this 
     console.log('4. Comparative iterator:', '---------');
     Test.recomgine.compIterate(function(){
@@ -48,12 +53,17 @@ var Test = {
     });
    },
 */
-   compareUsers:function(callback){
+
+  compareUsers:function(callback){
     console.log('5. Compare 2 users', '------------');
     var a = Test.users.shift();
     var b = Test.users.shift();
+    Test.recomgine.bind('harvest:complete', function(focus, comp){
+     assert.ok(focus==a||focus==b && comp==a||comp==b, console.log('PASS')); //erm...not ideal
+     this.unbind('harvest:complete');
+     return callback();
+    });
     Test.recomgine.compareUsers(a, b); 
-    return callback();
    }
 };
 

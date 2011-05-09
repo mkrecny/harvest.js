@@ -1,11 +1,18 @@
 var RecEngine = function(){
   this.dao = require('./lib/dao.js').create(); 
-  this.significanceThreshold = 0.3;
-  this.harvestSize = 2;
+  this.compsInitialized=0,
+  this.compsCompleted=0,
+  this.maxHarvestSize = 10;
+  this.bind('comparison:ready', function(focus, comp){
+    this.compsInitialized+=1;
+    return this.compareUsers(focus, comp);
+  });
+  this.bind('harvest:ready', this.harvestFromUser);
 };
 
 /*
  * Iterator to produce every 2 member subset of a set
+ * @param callback : function
  */
 RecEngine.prototype.compIterate = function(callback){
   var self = this;
@@ -15,34 +22,29 @@ RecEngine.prototype.compIterate = function(callback){
       var focus = users.shift();
       var remaining_size = users.length;
       for (var c = 0; c < remaining_size; c++){
-        self.compareUsers(focus, users[c]);
+        self.trigger('comparison:ready', focus, users[c]); 
+        //self.compareUsers(focus, users[c]);
       }
+      //note: this returns before compareUsers completes for users[]
+      callback();
     }
-    return callback();
   });    
 };
 
 /*
- * Grabs all of the state needed and then calls a function that can act on that 
- * state synchronously
+ * Compares two users and initiates harvest if necessary 
+ * TODO: remove neightbors who are no longer relevant? - the weighted mothod alleviates this problem...
+ * @param focus : varchar : uid of the focal user
+ * @param comp : varchar : uid of the non-focal user
  */
 RecEngine.prototype.compareUsers = function(focus, comp){
-  console.log(focus, comp);
   var self = this;
   self.dao.getIntersectionSize(focus, comp, 'likes', function(err, sintersize){
    self.dao.getUserSetSize(focus, 'likes', function(err, focus_size){
      self.dao.getUserSetSize(comp, 'likes', function(err, comp_size){
        var significances = self.getSignificances(focus_size, comp_size, sintersize);
-       console.log(significances);
-       if (significances[0]>self.significanceThreshold){
-         //self.addNeighbor(focus, comp);
-         self.harvestFromNeighbor(focus, comp);
-       }
-       if (significances[1]>self.significanceThreshold){
-         //self.addNeighbor(comp, focus);
-         self.harvestFromNeighbor(comp, focus);
-       }
-       return;
+       self.trigger('harvest:ready', focus, comp, significances[0]);
+       self.trigger('harvest:ready', comp, focus, significances[1]);
      });
    });
   });
@@ -52,10 +54,13 @@ RecEngine.prototype.compareUsers = function(focus, comp){
  * 1. Get focus.all DIFF new_neighbor.likes 
  * 2. Take a small subset of that and add it to focus.all && focus.recom
  */
-RecEngine.prototype.harvestFromNeighbor = function(focus, new_neighbor){ 
+RecEngine.prototype.harvestFromUser = function(focus, comp, significance){ 
   var self = this;
-  this.dao.srandSdiff(focus, new_neighbor, self.harvestSize, function(err, harvest){
-    return self.dao.addToUserSet('harvest', focus, harvest);
+  var numVidsToHarvest = Math.round(significance*this.maxHarvestSize);
+  this.dao.srandSdiff(focus, comp, numVidsToHarvest, function(err, harvest){
+    return self.dao.addToUserSet('harvest', focus, harvest, function(){
+      self.trigger('harvest:complete', focus, comp);
+    });
   });
 };
 
