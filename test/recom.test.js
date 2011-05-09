@@ -5,6 +5,11 @@ var Test = {
   numTestUsers:10,
   numElsPerUser:20,
 
+  start:function(callback){
+    Test.startTime= new Date().getTime();
+    return callback();
+  },
+
   creation:function(callback){
     console.log('1. Instantiation from module:', '------------');
     var self = this;
@@ -42,19 +47,19 @@ var Test = {
     }); 
    },
 
-/*
-* Turning this off for now
   comparativeIterator:function(callback){
     //not quite sure how to test this 
     console.log('4. Comparative iterator:', '---------');
-    Test.recomgine.compIterate(function(){
-      assert.ok(true, console.log("PASS")); 
+    Test.recomgine.bind('harvest:over', function(){
+      assert.ok(true, console.log('PASS')); //plz test a meaningful condition here
       return callback();
     });
+    Test.recomgine.compIterate();
    },
-*/
 
-  compareUsers:function(callback){
+/* Taking this out as its covered in compIterator above
+   compareUsers:function(callback){
+    return callback();
     console.log('5. Compare 2 users', '------------');
     var a = Test.users.shift();
     var b = Test.users.shift();
@@ -64,6 +69,14 @@ var Test = {
      return callback();
     });
     Test.recomgine.compareUsers(a, b); 
+   },
+*/
+   end:function(callback){
+    var endTime = new Date().getTime(); 
+    console.log('HARVEST COMPLETED-----------------');
+    console.log('USER BASE:', Test.numTestUsers);
+    console.log('COMPARISONS:', Test.recomgine.compsCompleted);
+    console.log('EXECUTION TIME:', endTime-Test.startTime+'ms');
    }
 };
 

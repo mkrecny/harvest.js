@@ -3,10 +3,7 @@ var RecEngine = function(){
   this.compsInitialized=0,
   this.compsCompleted=0,
   this.maxHarvestSize = 10;
-  this.bind('comparison:ready', function(focus, comp){
-    this.compsInitialized+=1;
-    return this.compareUsers(focus, comp);
-  });
+  this.bind('comparison:ready', this.compareUsers);
   this.bind('harvest:ready', this.harvestFromUser);
 };
 
@@ -14,19 +11,22 @@ var RecEngine = function(){
  * Iterator to produce every 2 member subset of a set
  * @param callback : function
  */
-RecEngine.prototype.compIterate = function(callback){
+RecEngine.prototype.compIterate = function(){
   var self = this;
+  self.bind('harvest:complete', function(){
+   if (self.compsCompleted==self.compsInitialized){
+     self.trigger('harvest:over');
+   }
+  });
   this.dao.getAllUsers(function(err, users){
     var size = users.length;
     for (var u = 0; u < size; u++){
       var focus = users.shift();
       var remaining_size = users.length;
       for (var c = 0; c < remaining_size; c++){
+        self.compsInitialized+=2; //2 because each comparison has 2 parts
         self.trigger('comparison:ready', focus, users[c]); 
-        //self.compareUsers(focus, users[c]);
       }
-      //note: this returns before compareUsers completes for users[]
-      callback();
     }
   });    
 };
@@ -59,6 +59,7 @@ RecEngine.prototype.harvestFromUser = function(focus, comp, significance){
   var numVidsToHarvest = Math.round(significance*this.maxHarvestSize);
   this.dao.srandSdiff(focus, comp, numVidsToHarvest, function(err, harvest){
     return self.dao.addToUserSet('harvest', focus, harvest, function(){
+      self.compsCompleted+=1;
       self.trigger('harvest:complete', focus, comp);
     });
   });
@@ -73,7 +74,6 @@ RecEngine.prototype.getSignificances = function(a_all, b_all, intersection_size)
   output.push(intersection_size/b_all);
   return output;
 };
-
 
 exports.create = function(){
   var micro = require('./lib/micro/microevent.js');
