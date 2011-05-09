@@ -9,7 +9,6 @@ var RecEngine = function(){
 
 /*
  * Iterator to produce every 2 member subset of a set
- * @param callback : function
  */
 RecEngine.prototype.compIterate = function(){
   var self = this;
