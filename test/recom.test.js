@@ -1,9 +1,11 @@
 var async = require('async');
 var assert = require('assert');
 
+console.log(process.argv);
+
 var Test = {
-  numTestUsers:10,
-  numElsPerUser:20,
+  numTestUsers:process.argv[2]/1,
+  numElsPerUser:process.argv[3]/1,
 
   start:function(callback){
     Test.startTime= new Date().getTime();
@@ -27,7 +29,6 @@ var Test = {
     Test.recomgine.dao.populate(Test.numTestUsers, Test.numElsPerUser);
     Test.recomgine.dao.bind('populated', function(){
       Test.recomgine.dao.redis.scard(Test.recomgine.dao.userSetKey, function(err, res){
-         console.log('RES', res);
          assert.ok(res == Test.numTestUsers, console.log("PASS"));
          return callback();
       });
@@ -75,7 +76,7 @@ var Test = {
     var endTime = new Date().getTime(); 
     console.log('HARVEST COMPLETED-----------------');
     console.log('USER BASE:', Test.numTestUsers);
-    console.log('COMPARISONS:', Test.recomgine.compsCompleted);
+    console.log('COMPARISONS:', Test.recomgine.compsCompleted/2);
     console.log('EXECUTION TIME:', endTime-Test.startTime+'ms');
    }
 };
