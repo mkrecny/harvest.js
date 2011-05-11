@@ -1,8 +1,6 @@
 var async = require('async');
 var assert = require('assert');
 
-console.log(process.argv);
-
 var Test = {
   numTestUsers:process.argv[2]/1,
   numElsPerUser:process.argv[3]/1,
@@ -74,10 +72,14 @@ var Test = {
 */
    end:function(callback){
     var endTime = new Date().getTime(); 
+    var timeTaken = endTime-Test.startTime;
+    var numComparisons = Test.recomgine.compsCompleted/2;
     console.log('HARVEST COMPLETED-----------------');
     console.log('USER BASE:', Test.numTestUsers);
-    console.log('COMPARISONS:', Test.recomgine.compsCompleted/2);
-    console.log('EXECUTION TIME:', endTime-Test.startTime+'ms');
+    console.log('COMPARISONS:', numComparisons);
+    console.log('EXECUTION TIME:', timeTaken+'ms');
+    console.log('EXECUTION RATE:', Math.round((numComparisons/timeTaken)*100)/100+' comps/ms'); 
+    process.exit();;
    }
 };
 

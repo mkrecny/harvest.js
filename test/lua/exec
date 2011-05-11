@@ -1,0 +1,2 @@
+redis-cli eval "$(cat /tmp/myscript.lua)" 0 
+

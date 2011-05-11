@@ -1,7 +1,7 @@
 var RecEngine = function(){
   this.dao = require('./lib/dao.js').create(); 
-  this.compsInitialized=0,
-  this.compsCompleted=0,
+  this.compsInitialized = 0,
+  this.compsCompleted = 0,
   this.maxHarvestSize = 10;
   this.bind('comparison:ready', this.compareUsers);
   this.bind('harvest:ready', this.harvestFromUser);
@@ -32,7 +32,6 @@ RecEngine.prototype.compIterate = function(){
 
 /*
  * Compares two users and initiates harvest if necessary 
- * TODO: remove neightbors who are no longer relevant? - the weighted mothod alleviates this problem...
  * @param focus : varchar : uid of the focal user
  * @param comp : varchar : uid of the non-focal user
  */
@@ -56,7 +55,7 @@ RecEngine.prototype.compareUsers = function(focus, comp){
 RecEngine.prototype.harvestFromUser = function(focus, comp, significance){ 
   var self = this;
   var numVidsToHarvest = Math.round(significance*this.maxHarvestSize);
-  this.dao.srandSdiff(focus, comp, numVidsToHarvest, function(err, harvest){
+  this.dao.srandSdiff(this.dao.getUserPropertyKey(focus, 'all'), this.dao.getUserPropertyKey(comp, 'likes'), numVidsToHarvest, function(err, harvest){
     return self.dao.addToUserSet('harvest', focus, harvest, function(){
       self.compsCompleted+=1;
       self.trigger('harvest:complete', focus, comp);
