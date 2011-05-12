@@ -17,6 +17,7 @@ RecEngine.prototype.compIterate = function(){
      self.trigger('harvest:over');
    }
   });
+  
   this.dao.getAllUsers(function(err, users){
     var size = users.length;
     for (var u = 0; u < size; u++){
@@ -37,7 +38,7 @@ RecEngine.prototype.compIterate = function(){
  */
 RecEngine.prototype.compareUsers = function(focus, comp){
   var self = this;
-  self.dao.getIntersectionSize(focus, comp, 'likes', function(err, sintersize){
+  self.dao.getIntersectionSize(this.dao.getUserPropertyKey(focus, 'likes'), this.dao.getUserPropertyKey(comp, 'likes'), function(err, sintersize){
    self.dao.getUserSetSize(focus, 'likes', function(err, focus_size){
      self.dao.getUserSetSize(comp, 'likes', function(err, comp_size){
        var significances = self.getSignificances(focus_size, comp_size, sintersize);
@@ -49,8 +50,10 @@ RecEngine.prototype.compareUsers = function(focus, comp){
 };
 
 /*
- * 1. Get focus.all DIFF new_neighbor.likes 
- * 2. Take a small subset of that and add it to focus.all && focus.recom
+ * Harvests elements from comp to focus based on significance
+ * @param focus : varchar : uid of focus
+ * @param comp : varchar : uid of comp
+ * @param significance : float : significance of comp to focus 0 <= n <= 1
  */
 RecEngine.prototype.harvestFromUser = function(focus, comp, significance){ 
   var self = this;
@@ -65,6 +68,9 @@ RecEngine.prototype.harvestFromUser = function(focus, comp, significance){
 
 /*
  * Calculates the a to b, b to a significance of the a-b intersection size
+ * @param a_all : int : set cardinality for a all set
+ * @param b_all : int : set cardinality for b all set
+ * @param intersection_size : int : set cardinlity for a - b (likes)
  */
 RecEngine.prototype.getSignificances = function(a_all, b_all, intersection_size){
   var output = [];
