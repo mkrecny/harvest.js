@@ -8,6 +8,7 @@ if (!(process.argv[2]/1 && process.argv[3]/1)){
 }
 
 var Test = {
+  subject:'likes',
   numTestUsers:process.argv[2]/1,
   numElsPerUser:process.argv[3]/1,
 
@@ -19,7 +20,7 @@ var Test = {
   creation:function(callback){
     console.log('1. Instantiation from module:', '------------');
     var self = this;
-    Test.harvest = require('../lib/harvest.js').create();
+    Test.harvest = require('../lib/harvest.js').create(Test.subject);
     Test.harvest.dao.redis.select(10, function(){
       Test.harvest.dao.redis.flushdb(function(){
         assert.ok(Test.harvest !== null, console.log("PASS"));
@@ -30,7 +31,7 @@ var Test = {
   
    populateDB:function(callback){
     console.log('2. Populate from DB:', '------------');
-    Test.harvest.dao.populate(Test.numTestUsers, Test.numElsPerUser);
+    Test.harvest.dao.populate(Test.numTestUsers, Test.numElsPerUser, Test.subject);
     Test.harvest.dao.bind('populated', function(){
       Test.harvest.dao.redis.scard(Test.harvest.dao.userSetKey, function(err, res){
          assert.ok(res == Test.numTestUsers, console.log("PASS"));
