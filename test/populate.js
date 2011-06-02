@@ -36,7 +36,8 @@ var Test = {
     Test.harvest.dao.bind('populated', function(){
       Test.harvest.dao.redis.scard(Test.harvest.dao.userSetKey, function(err, res){
          assert.ok(res == Test.numTestUsers, console.log("PASS"));
-         return callback();
+         //return callback();
+         return process.exit();
       });
     });
    },
