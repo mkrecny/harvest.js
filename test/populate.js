@@ -21,7 +21,7 @@ var Test = {
   creation:function(callback){
     console.log('1. Instantiation from module:', '------------');
     var self = this;
-    Test.harvest = require('../lib/_harvest.js').create(Test.subject, Test.threshold);
+    Test.harvest = require('../lib/harvest.js').create(Test.subject, Test.threshold);
     Test.harvest.dao.redis.select(10, function(){
       Test.harvest.dao.redis.flushdb(function(){
         assert.ok(Test.harvest !== null, console.log("PASS"));
