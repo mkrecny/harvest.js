@@ -1,5 +1,6 @@
 var async = require('async');
 var assert = require('assert');
+var config = require('../config.js');
 
 if (!(process.argv[2]/1 && process.argv[3]/1)){
   console.log('no arguments provided');
@@ -8,8 +9,6 @@ if (!(process.argv[2]/1 && process.argv[3]/1)){
 }
 
 var Test = {
-  subject:'likes',
-  threshold:0.8,
   numTestUsers:process.argv[2]/1,
   numElsPerUser:process.argv[3]/1,
 
@@ -21,7 +20,7 @@ var Test = {
   creation:function(callback){
     console.log('1. Instantiation from module:', '------------');
     var self = this;
-    Test.harvest = require('../lib/harvest.js').create(Test.subject, Test.threshold);
+    Test.harvest = require('../lib/harvest.js').create(config.harvest.subject, config.harvest.threshold);
     Test.harvest.dao.redis.select(10, function(){
       Test.harvest.dao.redis.flushdb(function(){
         assert.ok(Test.harvest !== null, console.log("PASS"));

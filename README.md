@@ -3,6 +3,9 @@ Harvest is a collaborative filtering tool for node. The envisioned use case is b
 NOTE: extremely early-stage and only eager developer friendly!
 
 ## Usage
+
+First adjust config.js to taste
+
 ### Adding a 'like'
 <pre>
 	var subject = 'likes'; //note: this could be anything based on your application
